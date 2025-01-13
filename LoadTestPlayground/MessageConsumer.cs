@@ -1,6 +1,7 @@
-using LoadTestPlayground;
 using LoadTestPlayground.Data;
 using MassTransit;
+
+namespace LoadTestPlayground;
 
 public class MessageConsumer(DbContext dbContext) : IConsumer<MessageCommand>
 {
