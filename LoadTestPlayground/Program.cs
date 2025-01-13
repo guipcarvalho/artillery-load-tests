@@ -1,5 +1,9 @@
+using LoadTestPlayground;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
+using DbContext = LoadTestPlayground.Data.DbContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<DbContext>(opt => 
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddMassTransit(opt =>
 {
@@ -18,6 +24,7 @@ builder.Services.AddMassTransit(opt =>
         {
             c.ConfigureConsumer<MessageConsumer>(context);
         });
+        cfg.ConfigureEndpoints(context);
     });
 });
 
@@ -27,13 +34,15 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
-app.MapPost("/produce", async ([FromBody] MessageCommand message, IPublishEndpoint publishEndpoint) => 
-    await publishEndpoint.Publish(message));
+app.MapPost("/produce", async ([FromBody] MessageCommand message, IPublishEndpoint publishEndpoint) =>
+{
+    await publishEndpoint.Publish(message);
+    return Results.Accepted();
+});
 
 app.Run();

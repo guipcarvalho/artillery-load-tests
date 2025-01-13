@@ -1,3 +1,5 @@
+namespace LoadTestPlayground;
+
 public record MessageCommand
 {
     public string UserId { get; set; }

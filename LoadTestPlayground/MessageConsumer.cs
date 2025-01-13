@@ -1,9 +1,19 @@
+using LoadTestPlayground;
+using LoadTestPlayground.Data;
 using MassTransit;
 
-public class MessageConsumer : IConsumer<MessageCommand>
+public class MessageConsumer(DbContext dbContext) : IConsumer<MessageCommand>
 {
-    public Task Consume(ConsumeContext<MessageCommand> context)
+    public async Task Consume(ConsumeContext<MessageCommand> context)
     {
-        throw new NotImplementedException();
+        var message = new Message
+        {
+            UserId = context.Message.UserId,
+            Text = context.Message.Message,
+            Score = context.Message.Score
+        };
+
+        dbContext.Messages.Add(message);
+        await dbContext.SaveChangesAsync();
     }
 }
